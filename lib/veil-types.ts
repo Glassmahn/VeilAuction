@@ -28,6 +28,6 @@ export interface AuctionResult {
   auctionType: AuctionType
 }
 
-export const VEIL_PROGRAM_ID = "VeiLAUcTi0nS3a1aN4ucti0nP1atform77777777777"
+export const VEIL_PROGRAM_ID = "DKhS1u3qVR5WytmuVT1mc6cZnj5QiybXnRWBr7x2yaae"
 
 export const AUCTION_ACCOUNT_SIZE = 8 + 1 + 32 + 1 + 1 + 8 + 8 + 2 + 16 + (32 * 5)

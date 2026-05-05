@@ -6,10 +6,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-veil_auction = "VeiLAUcTi0nS3a1aN4ucti0nP1atform77777777777"
+veil_auction = "DKhS1u3qVR5WytmuVT1mc6cZnj5QiybXnRWBr7x2yaae"
 
 [programs.devnet]
-veil_auction = "VeiLAUcTi0nS3a1aN4ucti0nP1atform77777777777"
+veil_auction = "DKhS1u3qVR5WytmuVT1mc6cZnj5QiybXnRWBr7x2yaae"
 
 [registry]
 url = "https://api.apr.dev"
@@ -27,4 +27,4 @@ shutdown_wait = 2000
 upgradeable = false
 
 [clusters.devnet]
-veil_auction = ["VeiLAUcTi0nS3a1aN4ucti0nP1atform77777777777"]
+veil_auction = ["DKhS1u3qVR5WytmuVT1mc6cZnj5QiybXnRWBr7x2yaae"]

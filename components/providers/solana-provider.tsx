@@ -7,7 +7,7 @@ import { WalletModalProvider, WalletMultiButton } from "@solana/wallet-adapter-r
 import { clusterApiUrl } from "@solana/web3.js"
 import type { WalletAdapter } from "@solana/wallet-adapter-base"
 
-const VEIL_AUCTION_PROGRAM_ID = "VeiLAUcTi0nS3a1aN4ucti0nP1atform77777777777"
+const VEIL_AUCTION_PROGRAM_ID = "DKhS1u3qVR5WytmuVT1mc6cZnj5QiybXnRWBr7x2yaae"
 
 export { VEIL_AUCTION_PROGRAM_ID }
 
