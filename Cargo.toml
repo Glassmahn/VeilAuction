@@ -2,6 +2,10 @@
 members = ["programs/*", "encrypted-ixs"]
 resolver = "2"
 
+[workspace.dependencies]
+time-core = "=0.1.2"
+darling = "=0.20.10"
+
 [profile.release]
 overflow-checks = true
 lto = "fat"
