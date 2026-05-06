@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { Logo } from "./logo"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { WalletMultiButton } from "@/components/providers/solana-provider"
 
 const navItems = [
   { label: "HOME", href: "/" },
@@ -37,13 +38,9 @@ export function Header() {
           </nav>
           
           <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="hidden text-xs font-medium tracking-wider sm:flex"
-            >
-              CONNECT
-            </Button>
+            <div className="hidden sm:flex">
+              <WalletMultiButton />
+            </div>
             <Link href="/dashboard">
               <Button 
                 size="sm"

@@ -26,6 +26,15 @@ pub enum AuctionStatus {
     Resolved,
 }
 
+#[account]
+#[derive(InitSpace)]
+pub struct BidEscrow {
+    pub bump: u8,
+    pub bidder: Pubkey,
+    pub auction: Pubkey,
+    pub amount: u64,
+}
+
 #[arcium_program]
 pub mod veil_auction {
     use super::*;
@@ -148,8 +157,21 @@ pub mod veil_auction {
             Clock::get()?.unix_timestamp < auction.end_time,
             ErrorCode::AuctionEnded
         );
+        require!(
+            ctx.accounts.bidder.lamports() >= ctx.accounts.escrow.amount + 5_000_000,
+            ErrorCode::InsufficientFunds
+        );
 
         ctx.accounts.sign_pda_account.bump = ctx.bumps.sign_pda_account;
+
+        let cpi_context = CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            anchor_lang::system_program::Transfer {
+                from: ctx.accounts.bidder.to_account_info(),
+                to: ctx.accounts.escrow.to_account_info(),
+            },
+        );
+        anchor_lang::system_program::transfer(cpi_context, ctx.accounts.escrow.amount)?;
 
         let args = ArgBuilder::new()
             .x25519_pubkey(bidder_pubkey)
@@ -407,6 +429,85 @@ pub mod veil_auction {
 
         Ok(())
     }
+
+    pub fn claim_winnings(ctx: Context<ClaimWinnings>) -> Result<()> {
+        let auction = &ctx.accounts.auction;
+        require!(
+            auction.status == AuctionStatus::Resolved,
+            ErrorCode::AuctionNotResolved
+        );
+        require!(
+            ctx.accounts.authority.key() == auction.authority,
+            ErrorCode::Unauthorized
+        );
+
+        let escrow = &ctx.accounts.winner_escrow;
+        require!(
+            escrow.auction == auction.key(),
+            ErrorCode::InvalidEscrow
+        );
+
+        let cpi_context = CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            anchor_lang::system_program::Transfer {
+                from: ctx.accounts.winner_escrow.to_account_info(),
+                to: ctx.accounts.authority.to_account_info(),
+            },
+        );
+        anchor_lang::system_program::transfer(cpi_context, escrow.amount)?;
+
+        let winner_escrow = &mut ctx.accounts.winner_escrow;
+        winner_escrow.amount = 0;
+
+        emit!(WinningsClaimedEvent {
+            auction: auction.key(),
+            seller: auction.authority,
+            amount: ctx.accounts.escrow_amount,
+        });
+
+        Ok(())
+    }
+
+    pub fn reclaim_bid(ctx: Context<ReclaimBid>) -> Result<()> {
+        let auction = &ctx.accounts.auction;
+        require!(
+            auction.status == AuctionStatus::Resolved,
+            ErrorCode::AuctionNotResolved
+        );
+
+        let escrow = &ctx.accounts.escrow;
+        require!(
+            escrow.bidder == ctx.accounts.bidder.key(),
+            ErrorCode::Unauthorized
+        );
+        require!(
+            escrow.auction == auction.key(),
+            ErrorCode::InvalidEscrow
+        );
+        require!(escrow.amount > 0, ErrorCode::EscrowEmpty);
+
+        let amount = escrow.amount;
+
+        let cpi_context = CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            anchor_lang::system_program::Transfer {
+                from: ctx.accounts.escrow.to_account_info(),
+                to: ctx.accounts.bidder.to_account_info(),
+            },
+        );
+        anchor_lang::system_program::transfer(cpi_context, amount)?;
+
+        let escrow = &mut ctx.accounts.escrow;
+        escrow.amount = 0;
+
+        emit!(BidReclaimedEvent {
+            auction: auction.key(),
+            bidder: ctx.accounts.bidder.key(),
+            amount,
+        });
+
+        Ok(())
+    }
 }
 
 #[account]
@@ -485,12 +586,20 @@ pub struct InitAuctionStateCallback<'info> {
 
 #[queue_computation_accounts("place_bid", bidder)]
 #[derive(Accounts)]
-#[instruction(computation_offset: u64)]
+#[instruction(computation_offset: u64, bid_amount: u64)]
 pub struct PlaceBid<'info> {
     #[account(mut)]
     pub bidder: Signer<'info>,
     #[account(mut)]
     pub auction: Box<Account<'info, Auction>>,
+    #[account(
+        init_if_needed,
+        payer = bidder,
+        space = 8 + BidEscrow::INIT_SPACE,
+        seeds = [b"bid_escrow", auction.key().as_ref(), bidder.key().as_ref()],
+        bump,
+    )]
+    pub escrow: Account<'info, BidEscrow>,
     #[account(
         init_if_needed,
         space = 9,
@@ -724,6 +833,40 @@ pub struct InitDetermineWinnerVickreyCompDef<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+pub struct ClaimWinnings<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    #[account(
+        mut,
+        has_one = authority @ ErrorCode::Unauthorized,
+    )]
+    pub auction: Account<'info, Auction>,
+    #[account(
+        mut,
+        constraint = winner_escrow.bidder == auction.winner() @ ErrorCode::WrongWinnerEscrow,
+        close = authority,
+    )]
+    pub winner_escrow: Account<'info, BidEscrow>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct ReclaimBid<'info> {
+    #[account(mut)]
+    pub bidder: Signer<'info>,
+    #[account(mut)]
+    pub auction: Account<'info, Auction>,
+    #[account(
+        mut,
+        has_one = bidder @ ErrorCode::Unauthorized,
+        has_one = auction @ ErrorCode::InvalidEscrow,
+        close = bidder,
+    )]
+    pub escrow: Account<'info, BidEscrow>,
+    pub system_program: Program<'info, System>,
+}
+
 #[event]
 pub struct AuctionCreatedEvent {
     pub auction: Pubkey,
@@ -753,6 +896,20 @@ pub struct AuctionResolvedEvent {
     pub auction_type: AuctionType,
 }
 
+#[event]
+pub struct WinningsClaimedEvent {
+    pub auction: Pubkey,
+    pub seller: Pubkey,
+    pub amount: u64,
+}
+
+#[event]
+pub struct BidReclaimedEvent {
+    pub auction: Pubkey,
+    pub bidder: Pubkey,
+    pub amount: u64,
+}
+
 #[error_code]
 pub enum ErrorCode {
     #[msg("The computation was aborted")]
@@ -763,6 +920,8 @@ pub enum ErrorCode {
     AuctionNotOpen,
     #[msg("Auction is not closed yet")]
     AuctionNotClosed,
+    #[msg("Auction is not resolved yet")]
+    AuctionNotResolved,
     #[msg("Wrong auction type for this operation")]
     WrongAuctionType,
     #[msg("Unauthorized")]
@@ -775,4 +934,12 @@ pub enum ErrorCode {
     BidCountOverflow,
     #[msg("No bids placed")]
     NoBids,
+    #[msg("Insufficient funds for bid")]
+    InsufficientFunds,
+    #[msg("Invalid escrow account")]
+    InvalidEscrow,
+    #[msg("Wrong winner escrow")]
+    WrongWinnerEscrow,
+    #[msg("Escrow is empty")]
+    EscrowEmpty,
 }
