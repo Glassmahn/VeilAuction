@@ -44,6 +44,8 @@ export default function AuctionDetailPage() {
   const [isBidding, setIsBidding] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
   const [isResolving, setIsResolving] = useState(false)
+  const [isClaiming, setIsClaiming] = useState(false)
+  const [isReclaiming, setIsReclaiming] = useState(false)
   const [timeLeft, setTimeLeft] = useState("")
 
   const auction = auctions.find((a) => a.pda.toBase58() === auctionId)
@@ -165,6 +167,60 @@ export default function AuctionDetailPage() {
       toast.error(error.message || "Failed to close auction")
     } finally {
       setIsClosing(false)
+    }
+  }, [connected, publicKey, auction, auctionId, signTransaction, connection, refetch])
+
+  }, [connected, publicKey, auction, auctionId, signTransaction, connection, refetch])
+
+  const handleClaimWinnings = useCallback(async () => {
+    if (!connected || !publicKey || !auction) return
+    setIsClaiming(true)
+    try {
+      toast.info("Building claim transaction...")
+      const res = await fetch("/api/auctions/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          authority: publicKey.toBase58(),
+          auctionPda: auctionId,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to build claim transaction")
+      const signature = await signAndSend(data.txBase64, signTransaction, connection)
+      toast.success("Winnings claimed!", { description: `Signature: ${signature.slice(0, 16)}...` })
+      await refetch()
+    } catch (error: any) {
+      console.error("Claim error:", error)
+      toast.error(error.message || "Failed to claim winnings")
+    } finally {
+      setIsClaiming(false)
+    }
+  }, [connected, publicKey, auction, auctionId, signTransaction, connection, refetch])
+
+  const handleReclaimBid = useCallback(async () => {
+    if (!connected || !publicKey || !auction) return
+    setIsReclaiming(true)
+    try {
+      toast.info("Building reclaim transaction...")
+      const res = await fetch("/api/auctions/reclaim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bidder: publicKey.toBase58(),
+          auctionPda: auctionId,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to build reclaim transaction")
+      const signature = await signAndSend(data.txBase64, signTransaction, connection)
+      toast.success("Bid reclaimed!", { description: `Signature: ${signature.slice(0, 16)}...` })
+      await refetch()
+    } catch (error: any) {
+      console.error("Reclaim error:", error)
+      toast.error(error.message || "Failed to reclaim bid")
+    } finally {
+      setIsReclaiming(false)
     }
   }, [connected, publicKey, auction, auctionId, signTransaction, connection, refetch])
 
@@ -365,6 +421,39 @@ export default function AuctionDetailPage() {
                 className="w-full bg-foreground text-background hover:bg-foreground/90"
               >
                 {isResolving ? "Resolving..." : `Determine Winner (${auction.data.auctionType === "FirstPrice" ? "First-Price" : "Vickrey"})`}
+              </Button>
+            </Card>
+          )}
+
+          {isAuthority && auction.data.status === AuctionStatus.Resolved && (
+            <Card className="border-border/40 bg-card/50 p-6 backdrop-blur-sm mt-4">
+              <h3 className="mb-4 text-lg font-semibold text-foreground">Claim Winnings</h3>
+              <p className="text-xs text-muted-foreground mb-4">
+                Winner determined. Claim the winning bid amount from escrow.
+              </p>
+              <Button
+                onClick={handleClaimWinnings}
+                disabled={isClaiming}
+                className="w-full bg-green-600 text-background hover:bg-green-600/90"
+              >
+                {isClaiming ? "Claiming..." : "Claim Winnings"}
+              </Button>
+            </Card>
+          )}
+
+          {connected && !isAuthority && auction.data.status === AuctionStatus.Resolved && (
+            <Card className="border-border/40 bg-card/50 p-6 backdrop-blur-sm mt-4">
+              <h3 className="mb-4 text-lg font-semibold text-foreground">Reclaim Bid</h3>
+              <p className="text-xs text-muted-foreground mb-4">
+                This auction is resolved. If you didn't win, reclaim your bid from escrow.
+              </p>
+              <Button
+                onClick={handleReclaimBid}
+                disabled={isReclaiming}
+                variant="outline"
+                className="w-full"
+              >
+                {isReclaiming ? "Reclaiming..." : "Reclaim My Bid"}
               </Button>
             </Card>
           )}
