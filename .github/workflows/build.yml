@@ -28,23 +28,5 @@ jobs:
       - name: Install Solana
         run: sh -c "$(curl -sSfL https://release.anza.xyz/v2.2.1/install)" && echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
-      - name: Cache avm
-        uses: actions/cache@v4
-        with:
-          path: ~/.avm
-          key: ${{ runner.os }}-avm-0.32.1
-
-      - name: Install Anchor CLI
-        run: cargo install avm --git https://github.com/coral-xyz/anchor --tag v0.32.1 --locked --force && avm install 0.32.1 && avm use 0.32.1
-
       - name: Build programs
-        run: anchor build
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: anchor-build
-          path: |
-            target/deploy/
-            target/idl/
-            target/types/
+        run: cargo build-sbf --manifest-path programs/veil_auction/Cargo.toml
