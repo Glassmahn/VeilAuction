@@ -19,9 +19,7 @@ jobs:
         run: sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)" && echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
       - name: Build programs
-        run: |
-          cargo install cargo-build-sbf
-          PATH="$HOME/.cargo/bin:$PATH" cargo build-sbf --manifest-path programs/veil_auction/Cargo.toml
+        run: cargo build-sbf --manifest-path programs/veil_auction/Cargo.toml
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
