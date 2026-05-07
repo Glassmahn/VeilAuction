@@ -583,6 +583,7 @@ pub struct InitAuctionStateCallback<'info> {
     pub computation_account: UncheckedAccount<'info>,
     #[account(address = derive_cluster_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub cluster_account: Account<'info, Cluster>,
+    /// CHECK: instruction sysvar required by Arcium callback verification
     #[account(address = ::anchor_lang::solana_program::sysvar::instructions::ID)]
     pub instructions_sysvar: AccountInfo<'info>,
     #[account(mut)]
@@ -649,6 +650,7 @@ pub struct PlaceBidCallback<'info> {
     pub computation_account: UncheckedAccount<'info>,
     #[account(address = derive_cluster_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub cluster_account: Account<'info, Cluster>,
+    /// CHECK: instruction sysvar required by Arcium callback verification
     #[account(address = ::anchor_lang::solana_program::sysvar::instructions::ID)]
     pub instructions_sysvar: AccountInfo<'info>,
     #[account(mut)]
@@ -718,6 +720,7 @@ pub struct DetermineWinnerFirstPriceCallback<'info> {
     pub computation_account: UncheckedAccount<'info>,
     #[account(address = derive_cluster_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub cluster_account: Account<'info, Cluster>,
+    /// CHECK: instruction sysvar required by Arcium callback verification
     #[account(address = ::anchor_lang::solana_program::sysvar::instructions::ID)]
     pub instructions_sysvar: AccountInfo<'info>,
     #[account(mut)]
@@ -776,6 +779,7 @@ pub struct DetermineWinnerVickreyCallback<'info> {
     pub computation_account: UncheckedAccount<'info>,
     #[account(address = derive_cluster_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub cluster_account: Account<'info, Cluster>,
+    /// CHECK: instruction sysvar required by Arcium callback verification
     #[account(address = ::anchor_lang::solana_program::sysvar::instructions::ID)]
     pub instructions_sysvar: AccountInfo<'info>,
     #[account(mut)]
