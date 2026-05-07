@@ -550,10 +550,13 @@ pub struct CreateAuction<'info> {
     pub sign_pda_account: Account<'info, ArciumSignerAccount>,
     #[account(address = derive_mxe_pda!())]
     pub mxe_account: Account<'info, MXEAccount>,
+    /// CHECK: mempool PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_mempool_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub mempool_account: UncheckedAccount<'info>,
+    /// CHECK: executing pool PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_execpool_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub executing_pool: UncheckedAccount<'info>,
+    /// CHECK: computation PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_comp_pda!(computation_offset, mxe_account, ErrorCode::ClusterNotSet))]
     pub computation_account: UncheckedAccount<'info>,
     #[account(address = derive_comp_def_pda!(COMP_DEF_OFFSET_INIT_AUCTION_STATE))]
@@ -576,6 +579,7 @@ pub struct InitAuctionStateCallback<'info> {
     pub comp_def_account: Account<'info, ComputationDefinitionAccount>,
     #[account(address = derive_mxe_pda!())]
     pub mxe_account: Account<'info, MXEAccount>,
+    /// CHECK: computation PDA managed by Arcium, validated by address constraint
     pub computation_account: UncheckedAccount<'info>,
     #[account(address = derive_cluster_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub cluster_account: Account<'info, Cluster>,
@@ -612,10 +616,13 @@ pub struct PlaceBid<'info> {
     pub sign_pda_account: Account<'info, ArciumSignerAccount>,
     #[account(address = derive_mxe_pda!())]
     pub mxe_account: Account<'info, MXEAccount>,
+    /// CHECK: mempool PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_mempool_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub mempool_account: UncheckedAccount<'info>,
+    /// CHECK: executing pool PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_execpool_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub executing_pool: UncheckedAccount<'info>,
+    /// CHECK: computation PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_comp_pda!(computation_offset, mxe_account, ErrorCode::ClusterNotSet))]
     pub computation_account: UncheckedAccount<'info>,
     #[account(address = derive_comp_def_pda!(COMP_DEF_OFFSET_PLACE_BID))]
@@ -638,6 +645,7 @@ pub struct PlaceBidCallback<'info> {
     pub comp_def_account: Account<'info, ComputationDefinitionAccount>,
     #[account(address = derive_mxe_pda!())]
     pub mxe_account: Account<'info, MXEAccount>,
+    /// CHECK: computation PDA managed by Arcium, validated by address constraint
     pub computation_account: UncheckedAccount<'info>,
     #[account(address = derive_cluster_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub cluster_account: Account<'info, Cluster>,
@@ -677,10 +685,13 @@ pub struct DetermineWinnerFirstPrice<'info> {
     pub sign_pda_account: Account<'info, ArciumSignerAccount>,
     #[account(address = derive_mxe_pda!())]
     pub mxe_account: Account<'info, MXEAccount>,
+    /// CHECK: mempool PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_mempool_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub mempool_account: UncheckedAccount<'info>,
+    /// CHECK: executing pool PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_execpool_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub executing_pool: UncheckedAccount<'info>,
+    /// CHECK: computation PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_comp_pda!(computation_offset, mxe_account, ErrorCode::ClusterNotSet))]
     pub computation_account: UncheckedAccount<'info>,
     #[account(address = derive_comp_def_pda!(COMP_DEF_OFFSET_DETERMINE_WINNER_FIRST_PRICE))]
@@ -703,6 +714,7 @@ pub struct DetermineWinnerFirstPriceCallback<'info> {
     pub comp_def_account: Account<'info, ComputationDefinitionAccount>,
     #[account(address = derive_mxe_pda!())]
     pub mxe_account: Account<'info, MXEAccount>,
+    /// CHECK: computation PDA managed by Arcium, validated by address constraint
     pub computation_account: UncheckedAccount<'info>,
     #[account(address = derive_cluster_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub cluster_account: Account<'info, Cluster>,
@@ -731,10 +743,13 @@ pub struct DetermineWinnerVickrey<'info> {
     pub sign_pda_account: Account<'info, ArciumSignerAccount>,
     #[account(address = derive_mxe_pda!())]
     pub mxe_account: Account<'info, MXEAccount>,
+    /// CHECK: mempool PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_mempool_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub mempool_account: UncheckedAccount<'info>,
+    /// CHECK: executing pool PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_execpool_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub executing_pool: UncheckedAccount<'info>,
+    /// CHECK: computation PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_comp_pda!(computation_offset, mxe_account, ErrorCode::ClusterNotSet))]
     pub computation_account: UncheckedAccount<'info>,
     #[account(address = derive_comp_def_pda!(COMP_DEF_OFFSET_DETERMINE_WINNER_VICKREY))]
@@ -757,6 +772,7 @@ pub struct DetermineWinnerVickreyCallback<'info> {
     pub comp_def_account: Account<'info, ComputationDefinitionAccount>,
     #[account(address = derive_mxe_pda!())]
     pub mxe_account: Account<'info, MXEAccount>,
+    /// CHECK: computation PDA managed by Arcium, validated by address constraint
     pub computation_account: UncheckedAccount<'info>,
     #[account(address = derive_cluster_pda!(mxe_account, ErrorCode::ClusterNotSet))]
     pub cluster_account: Account<'info, Cluster>,
@@ -773,10 +789,13 @@ pub struct InitAuctionStateCompDef<'info> {
     pub payer: Signer<'info>,
     #[account(mut, address = derive_mxe_pda!())]
     pub mxe_account: Box<Account<'info, MXEAccount>>,
+    /// CHECK: comp def PDA managed by Arcium, validated by address constraint
     #[account(mut)]
     pub comp_def_account: UncheckedAccount<'info>,
+    /// CHECK: LUT PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_mxe_lut_pda!(mxe_account.lut_offset_slot))]
     pub address_lookup_table: UncheckedAccount<'info>,
+    /// CHECK: LUT program, validated by address constraint
     #[account(address = LUT_PROGRAM_ID)]
     pub lut_program: UncheckedAccount<'info>,
     pub arcium_program: Program<'info, Arcium>,
@@ -790,10 +809,13 @@ pub struct InitPlaceBidCompDef<'info> {
     pub payer: Signer<'info>,
     #[account(mut, address = derive_mxe_pda!())]
     pub mxe_account: Box<Account<'info, MXEAccount>>,
+    /// CHECK: comp def PDA managed by Arcium, validated by address constraint
     #[account(mut)]
     pub comp_def_account: UncheckedAccount<'info>,
+    /// CHECK: LUT PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_mxe_lut_pda!(mxe_account.lut_offset_slot))]
     pub address_lookup_table: UncheckedAccount<'info>,
+    /// CHECK: LUT program, validated by address constraint
     #[account(address = LUT_PROGRAM_ID)]
     pub lut_program: UncheckedAccount<'info>,
     pub arcium_program: Program<'info, Arcium>,
@@ -807,10 +829,13 @@ pub struct InitDetermineWinnerFirstPriceCompDef<'info> {
     pub payer: Signer<'info>,
     #[account(mut, address = derive_mxe_pda!())]
     pub mxe_account: Box<Account<'info, MXEAccount>>,
+    /// CHECK: comp def PDA managed by Arcium, validated by address constraint
     #[account(mut)]
     pub comp_def_account: UncheckedAccount<'info>,
+    /// CHECK: LUT PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_mxe_lut_pda!(mxe_account.lut_offset_slot))]
     pub address_lookup_table: UncheckedAccount<'info>,
+    /// CHECK: LUT program, validated by address constraint
     #[account(address = LUT_PROGRAM_ID)]
     pub lut_program: UncheckedAccount<'info>,
     pub arcium_program: Program<'info, Arcium>,
@@ -824,10 +849,13 @@ pub struct InitDetermineWinnerVickreyCompDef<'info> {
     pub payer: Signer<'info>,
     #[account(mut, address = derive_mxe_pda!())]
     pub mxe_account: Box<Account<'info, MXEAccount>>,
+    /// CHECK: comp def PDA managed by Arcium, validated by address constraint
     #[account(mut)]
     pub comp_def_account: UncheckedAccount<'info>,
+    /// CHECK: LUT PDA managed by Arcium, validated by address constraint
     #[account(mut, address = derive_mxe_lut_pda!(mxe_account.lut_offset_slot))]
     pub address_lookup_table: UncheckedAccount<'info>,
+    /// CHECK: LUT program, validated by address constraint
     #[account(address = LUT_PROGRAM_ID)]
     pub lut_program: UncheckedAccount<'info>,
     pub arcium_program: Program<'info, Arcium>,
