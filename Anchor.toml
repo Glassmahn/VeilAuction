@@ -1,16 +1,16 @@
 [toolchain]
-package_manager = "yarn"
 anchor_version = "0.32.1"
 solana_version = "2.2.1"
+package_manager = "yarn"
 
 [features]
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-veil_auction = "DKhS1u3qVR5WytmuVT1mc6cZnj5QiybXnRWBr7x2yaae"
-
 [programs.devnet]
+veil_auction = "zTkNvsczL8Uvg97KDFKo1PTnPSi8RdAKryyd7d3f2H4"
+
+[programs.localnet]
 veil_auction = "DKhS1u3qVR5WytmuVT1mc6cZnj5QiybXnRWBr7x2yaae"
 
 [registry]
@@ -27,6 +27,3 @@ test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\""
 startup_wait = 20000
 shutdown_wait = 2000
 upgradeable = false
-
-[clusters.devnet]
-veil_auction = ["DKhS1u3qVR5WytmuVT1mc6cZnj5QiybXnRWBr7x2yaae"]
