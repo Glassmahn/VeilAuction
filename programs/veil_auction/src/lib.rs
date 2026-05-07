@@ -446,6 +446,7 @@ pub mod veil_auction {
             escrow.auction == auction.key(),
             ErrorCode::InvalidEscrow
         );
+        let amount = escrow.amount;
 
         let cpi_context = CpiContext::new(
             ctx.accounts.system_program.to_account_info(),
@@ -454,7 +455,7 @@ pub mod veil_auction {
                 to: ctx.accounts.authority.to_account_info(),
             },
         );
-        anchor_lang::system_program::transfer(cpi_context, escrow.amount)?;
+        anchor_lang::system_program::transfer(cpi_context, amount)?;
 
         let winner_escrow = &mut ctx.accounts.winner_escrow;
         winner_escrow.amount = 0;
@@ -462,7 +463,7 @@ pub mod veil_auction {
         emit!(WinningsClaimedEvent {
             auction: auction.key(),
             seller: auction.authority,
-            amount: escrow.amount,
+            amount,
         });
 
         Ok(())
