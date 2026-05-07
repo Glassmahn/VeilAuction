@@ -585,7 +585,7 @@ describe("VeilAuction", () => {
     program: Program<VeilAuction>,
     owner: anchor.web3.Keypair,
     circuitName: string
-  ): Promise<string> {
+  ): Promise<string | null> {
     const baseSeedCompDefAcc = getArciumAccountBaseSeed(
       "ComputationDefinitionAccount"
     );
@@ -594,6 +594,21 @@ describe("VeilAuction", () => {
       [baseSeedCompDefAcc, program.programId.toBuffer(), offset],
       getArciumProgramId()
     )[0];
+
+    // Skip if comp def account already exists
+    const existing = await provider.connection.getAccountInfo(compDefPDA);
+    if (existing && existing.data.length > 0) {
+      console.log(`   ${circuitName} comp def already exists, skipping init`);
+      const rawCircuit = fs.readFileSync(`build/${circuitName}.arcis`);
+      await uploadCircuit(
+        provider as anchor.AnchorProvider,
+        circuitName,
+        program.programId,
+        rawCircuit,
+        true
+      );
+      return null;
+    }
 
     const arciumProgram = getArciumProgram(provider as anchor.AnchorProvider);
     const mxeAccount = getMXEAccAddress(program.programId);
