@@ -15,11 +15,19 @@ jobs:
       - name: Install Rust
         run: rustup toolchain install stable --profile minimal && rustup component add rust-src && rustup default stable
 
-      - name: Install Solana
-        run: sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)" && echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      - name: Install cargo-build-sbf
+        run: cargo install cargo-build-sbf@4.0.0
+
+      - name: Setup PATH
+        run: |
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
       - name: Build programs
-        run: cargo build-sbf --manifest-path programs/veil_auction/Cargo.toml
+        run: |
+          which cargo-build-sbf
+          cargo build-sbf --manifest-path programs/veil_auction/Cargo.toml
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
