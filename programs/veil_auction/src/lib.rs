@@ -462,7 +462,7 @@ pub mod veil_auction {
         emit!(WinningsClaimedEvent {
             auction: auction.key(),
             seller: auction.authority,
-            amount: ctx.accounts.escrow_amount,
+            amount: escrow.amount,
         });
 
         Ok(())
@@ -844,7 +844,8 @@ pub struct ClaimWinnings<'info> {
     pub auction: Account<'info, Auction>,
     #[account(
         mut,
-        constraint = winner_escrow.bidder == auction.winner() @ ErrorCode::WrongWinnerEscrow,
+        has_one = auction @ ErrorCode::InvalidEscrow,
+        constraint = winner_escrow.amount > 0 @ ErrorCode::EscrowEmpty,
         close = authority,
     )]
     pub winner_escrow: Account<'info, BidEscrow>,
