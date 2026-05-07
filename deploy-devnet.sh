@@ -93,7 +93,7 @@ echo ""
 
 # Deploy
 info "Deploying to devnet..."
-DEPLOY_OUTPUT=$(arcium deploy --provider.cluster devnet 2>&1) || error "Deployment failed: $DEPLOY_OUTPUT"
+DEPLOY_OUTPUT=$(arcium deploy --cluster-offset 0 --recovery-set-size 3 --keypair-path "$WALLET_PATH" 2>&1) || error "Deployment failed: $DEPLOY_OUTPUT"
 echo "$DEPLOY_OUTPUT"
 
 # Extract program ID from output
