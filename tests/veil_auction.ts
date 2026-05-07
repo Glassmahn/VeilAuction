@@ -1,7 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { VeilAuction } from "../target/types/veil_auction";
+import { VeilAuction } from "../target/types/veil_auction.js";
 import { randomBytes } from "crypto";
 import {
   awaitComputationFinalization,
