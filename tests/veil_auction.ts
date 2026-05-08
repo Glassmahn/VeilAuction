@@ -36,8 +36,8 @@ describe("VeilAuction", () => {
   const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
   const walletKp = readKpJson(`${os.homedir()}/.config/solana/id.json`);
   const wallet = new anchor.Wallet(walletKp);
-  const connection = new anchor.web3.Connection(RPC_URL, { commitment: "confirmed", confirmTransactionInitialTimeout: 120000 });
-  anchor.setProvider(new anchor.AnchorProvider(connection, wallet, { commitment: "confirmed", skipPreflight: true }));
+  const connection = new anchor.web3.Connection(RPC_URL, "confirmed");
+  anchor.setProvider(new anchor.AnchorProvider(connection, wallet, { commitment: "confirmed" }));
   const program = anchor.workspace.VeilAuction as Program<VeilAuction>;
   const provider = anchor.getProvider();
   const arciumEnv = getArciumEnv();
