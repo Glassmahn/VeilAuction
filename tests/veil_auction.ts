@@ -92,8 +92,9 @@ describe("VeilAuction", () => {
         .rpc({ commitment: "confirmed" });
       await awaitComputationFinalization(provider as anchor.AnchorProvider, createComputationOffset, program.programId, "confirmed");
       const auctionAcc = await program.account.auction.fetch(auctionPDA);
-      console.log(`   Status: ${auctionAcc.status}, minBid: ${auctionAcc.minBid}, bidCount: ${auctionAcc.bidCount}`);
-      if (auctionAcc.status.toString() !== "open" && auctionAcc.status.toString() !== "0") throw new Error("Auction not Open");
+      const st = Object.keys(auctionAcc.status as any)[0];
+      console.log(`   Status: ${st}, minBid: ${auctionAcc.minBid}, bidCount: ${auctionAcc.bidCount}`);
+      if (st !== "open") throw new Error("Auction not Open");
       if (Number(auctionAcc.minBid) !== 100) throw new Error("Wrong minBid");
 
       // Step 2: Place bid
@@ -132,8 +133,9 @@ describe("VeilAuction", () => {
       console.log("Closing auction...");
       await program.methods.closeAuction().accountsPartial({ authority: owner.publicKey, auction: auctionPDA }).rpc({ commitment: "confirmed" });
       const closedAcc = await program.account.auction.fetch(auctionPDA);
-      console.log(`   Status: ${closedAcc.status}`);
-      if (closedAcc.status.toString() !== "closed" && closedAcc.status.toString() !== "1") throw new Error("Auction not Closed");
+      const st2 = Object.keys(closedAcc.status as any)[0];
+      console.log(`   Status: ${st2}`);
+      if (st2 !== "closed") throw new Error("Auction not Closed");
 
       // Step 5: Determine winner
       console.log("\nStep 4: Determining winner (first-price)...");
@@ -147,8 +149,9 @@ describe("VeilAuction", () => {
       }).rpc({ commitment: "confirmed" });
       await awaitComputationFinalization(provider as anchor.AnchorProvider, resolveComputationOffset, program.programId, "confirmed");
       const resolvedAcc = await program.account.auction.fetch(auctionPDA);
-      console.log(`   Status: ${resolvedAcc.status}`);
-      if (resolvedAcc.status.toString() !== "resolved" && resolvedAcc.status.toString() !== "2") throw new Error("Auction not Resolved");
+      const st3 = Object.keys(resolvedAcc.status as any)[0];
+      console.log(`   Status: ${st3}`);
+      if (st3 !== "resolved") throw new Error("Auction not Resolved");
 
       console.log("\n=== First-Price Auction Test PASSED ===\n");
     });
@@ -192,8 +195,9 @@ describe("VeilAuction", () => {
         }).signers([vAuthority]).rpc({ commitment: "confirmed" });
       await awaitComputationFinalization(provider as anchor.AnchorProvider, createCO, program.programId, "confirmed");
       const vAuctionAcc = await program.account.auction.fetch(vAuctionPDA);
-      console.log(`   Status: ${vAuctionAcc.status}, minBid: ${vAuctionAcc.minBid}`);
-      if (vAuctionAcc.status.toString() !== "open" && vAuctionAcc.status.toString() !== "0") throw new Error("Vickrey auction not Open");
+      const vSt = Object.keys(vAuctionAcc.status as any)[0];
+      console.log(`   Status: ${vSt}, minBid: ${vAuctionAcc.minBid}`);
+      if (vSt !== "open") throw new Error("Vickrey auction not Open");
 
       // Step 2: First bid 1000
       console.log("\nStep 2: Placing first bid of 1000 lamports...");
@@ -250,7 +254,8 @@ describe("VeilAuction", () => {
       console.log("Closing Vickrey auction...");
       await program.methods.closeAuction().accountsPartial({ authority: vAuthority.publicKey, auction: vAuctionPDA }).signers([vAuthority]).rpc({ commitment: "confirmed" });
       vAcc = await program.account.auction.fetch(vAuctionPDA);
-      if (vAcc.status.toString() !== "closed" && vAcc.status.toString() !== "1") throw new Error("Auction not Closed");
+      const vSt2 = Object.keys(vAcc.status as any)[0];
+      if (vSt2 !== "closed") throw new Error("Auction not Closed");
 
       // Step 6: Determine winner
       console.log("\nStep 5: Determining winner (Vickrey)...");
@@ -265,8 +270,9 @@ describe("VeilAuction", () => {
       }).signers([vAuthority]).rpc({ commitment: "confirmed" });
       await awaitComputationFinalization(provider as anchor.AnchorProvider, rCO, program.programId, "confirmed");
       vAcc = await program.account.auction.fetch(vAuctionPDA);
-      console.log(`   Status: ${vAcc.status}`);
-      if (vAcc.status.toString() !== "resolved" && vAcc.status.toString() !== "2") throw new Error("Auction not Resolved");
+      const vSt3 = Object.keys(vAcc.status as any)[0];
+      console.log(`   Status: ${vSt3}`);
+      if (vSt3 !== "resolved") throw new Error("Auction not Resolved");
 
       console.log("\n=== Vickrey Auction Test PASSED ===\n");
     });
