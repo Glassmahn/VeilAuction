@@ -600,13 +600,21 @@ describe("VeilAuction", () => {
     if (existing && existing.data.length > 0) {
       console.log(`   ${circuitName} comp def already exists, skipping init`);
       const rawCircuit = fs.readFileSync(`build/${circuitName}.arcis`);
-      await uploadCircuit(
-        provider as anchor.AnchorProvider,
-        circuitName,
-        program.programId,
-        rawCircuit,
-        true
-      );
+      try {
+        await uploadCircuit(
+          provider as anchor.AnchorProvider,
+          circuitName,
+          program.programId,
+          rawCircuit,
+          true
+        );
+      } catch (err: any) {
+        if (err.message?.includes?.("insufficient lamports")) {
+          console.log(`   ⚠️  Insufficient SOL to upload ${circuitName} circuit, skipping`);
+        } else {
+          throw err;
+        }
+      }
       return null;
     }
 
@@ -673,13 +681,21 @@ describe("VeilAuction", () => {
     }
 
     const rawCircuit = fs.readFileSync(`build/${circuitName}.arcis`);
-    await uploadCircuit(
-      provider as anchor.AnchorProvider,
-      circuitName,
-      program.programId,
-      rawCircuit,
-      true
-    );
+    try {
+      await uploadCircuit(
+        provider as anchor.AnchorProvider,
+        circuitName,
+        program.programId,
+        rawCircuit,
+        true
+      );
+    } catch (err: any) {
+      if (err.message?.includes?.("insufficient lamports")) {
+        console.log(`   ⚠️  Insufficient SOL to upload ${circuitName} circuit, skipping resize`);
+      } else {
+        throw err;
+      }
+    }
 
     return sig;
   }
