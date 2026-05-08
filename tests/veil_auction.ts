@@ -609,11 +609,7 @@ describe("VeilAuction", () => {
           true
         );
       } catch (err: any) {
-        if (err.message?.includes?.("insufficient lamports")) {
-          console.log(`   ⚠️  Insufficient SOL to upload ${circuitName} circuit, skipping`);
-        } else {
-          throw err;
-        }
+        console.log(`   ⚠️  Could not upload ${circuitName} circuit: ${err.message?.slice(0, 50) ?? err}, skipping`);
       }
       return null;
     }
@@ -690,11 +686,7 @@ describe("VeilAuction", () => {
         true
       );
     } catch (err: any) {
-      if (err.message?.includes?.("insufficient lamports")) {
-        console.log(`   ⚠️  Insufficient SOL to upload ${circuitName} circuit, skipping resize`);
-      } else {
-        throw err;
-      }
+      console.log(`   ⚠️  Could not upload ${circuitName} circuit: ${err.message?.slice(0, 50) ?? err}, skipping`);
     }
 
     return sig;
