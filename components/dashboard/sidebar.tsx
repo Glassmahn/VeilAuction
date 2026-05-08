@@ -1,11 +1,11 @@
 "use client"
 
 import { useWallet } from "@solana/wallet-adapter-react"
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { WalletButton } from "@/components/providers/solana-provider"
 
 const navItems = [
   {
@@ -146,7 +146,7 @@ export function DashboardSidebar() {
       
       {/* Wallet connection */}
       <div className="border-t border-sidebar-border p-4">
-        <WalletMultiButton className="wallet-sidebar-btn" />
+        <WalletButton />
       </div>
     </motion.aside>
   )

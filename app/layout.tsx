@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, Space_Grotesk } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { SolanaProviders } from '@/components/providers/solana-provider'
+import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
 const inter = Inter({ 
@@ -50,12 +51,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} bg-background`}>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} bg-background`} suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <SolanaProviders>
-          {children}
-          {process.env.NODE_ENV === 'production' && <Analytics />}
-        </SolanaProviders>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          <SolanaProviders>
+            {children}
+            {process.env.NODE_ENV === 'production' && <Analytics />}
+          </SolanaProviders>
+        </ThemeProvider>
       </body>
     </html>
   )

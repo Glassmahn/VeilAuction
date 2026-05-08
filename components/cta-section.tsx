@@ -61,13 +61,15 @@ export function CTASection() {
               LAUNCH APP
             </Button>
           </Link>
-          <Button 
-            variant="outline" 
-            size="lg"
-            className="border-border/60 px-10 text-sm font-medium tracking-wider"
-          >
-            READ DOCS
-          </Button>
+          <Link href="https://docs.arcium.com" target="_blank">
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="border-border/60 px-10 text-sm font-medium tracking-wider"
+            >
+              READ DOCS
+            </Button>
+          </Link>
         </motion.div>
         
         {/* Trust badges */}

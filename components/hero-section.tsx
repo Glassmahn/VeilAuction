@@ -59,13 +59,15 @@ export function HeroSection() {
                   EXPLORE AUCTIONS
                 </Button>
               </Link>
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="border-border/60 px-8 text-sm font-medium tracking-wider"
-              >
-                CREATE AUCTION
-              </Button>
+              <Link href="/dashboard">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  className="border-border/60 px-8 text-sm font-medium tracking-wider"
+                >
+                  CREATE AUCTION
+                </Button>
+              </Link>
             </motion.div>
             
             {/* Stats */}

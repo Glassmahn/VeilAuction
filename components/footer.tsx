@@ -11,13 +11,13 @@ const footerLinks = {
     { label: "How It Works", href: "#how-it-works" },
   ],
   resources: [
-    { label: "Documentation", href: "#" },
-    { label: "GitHub", href: "https://github.com/arcium-hq/examples" },
+    { label: "Documentation", href: "https://docs.arcium.com" },
+    { label: "GitHub", href: "https://github.com/Glassmahn/VeilAuction" },
     { label: "Arcium Docs", href: "https://docs.arcium.com" },
   ],
   connect: [
-    { label: "Twitter", href: "#" },
-    { label: "Discord", href: "#" },
+    { label: "Twitter", href: "https://x.com/veilauction" },
+    { label: "Discord", href: "https://discord.gg/arcium" },
     { label: "Telegram", href: "#" },
   ]
 }
@@ -122,7 +122,7 @@ export function Footer() {
           transition={{ duration: 0.6, delay: 0.4 }}
         >
           <p className="text-xs text-muted-foreground">
-            2024 VeilAuction. Built for Arcium Frontier Hackathon.
+            2026 VeilAuction. Built for Arcium Frontier Hackathon.
           </p>
           <div className="flex items-center gap-6">
             <Link href="#" className="text-xs text-muted-foreground hover:text-foreground">

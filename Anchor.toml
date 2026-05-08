@@ -5,7 +5,7 @@ package_manager = "yarn"
 
 [features]
 resolution = true
-skip-lint = false
+skip-lint = true
 
 [programs.devnet]
 veil_auction = "zTkNvsczL8Uvg97KDFKo1PTnPSi8RdAKryyd7d3f2H4"

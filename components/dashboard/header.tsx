@@ -1,8 +1,9 @@
 "use client"
 
 import { useWallet } from "@solana/wallet-adapter-react"
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui"
 import { motion } from "framer-motion"
+import { WalletButton } from "@/components/providers/solana-provider"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function DashboardHeader() {
   const { connected, publicKey } = useWallet()
@@ -41,16 +42,17 @@ export function DashboardHeader() {
           />
         </div>
         
-        {/* Notifications */}
-        <button className="relative rounded-lg p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+        {/* Notifications placeholder */}
+        <button onClick={() => {}} className="relative rounded-lg p-2 text-muted-foreground/40 cursor-not-allowed">
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent" />
         </button>
         
+        <ThemeToggle />
+        
         {/* Wallet */}
-        <WalletMultiButton className="wallet-header-btn" />
+        <WalletButton />
       </div>
     </motion.header>
   )
