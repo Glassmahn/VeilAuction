@@ -89,7 +89,7 @@ describe("VeilAuction", () => {
           executingPool: getExecutingPoolAccAddress(arciumEnv.arciumClusterOffset),
           compDefAccount: getCompDefAccAddress(program.programId, Buffer.from(getCompDefAccOffset("init_auction_state")).readUInt32LE()),
         })
-        .rpc({ skipPreflight: true, commitment: "confirmed" });
+        .rpc({ commitment: "confirmed" });
       await awaitComputationFinalization(provider as anchor.AnchorProvider, createComputationOffset, program.programId, "confirmed");
       const auctionAcc = await program.account.auction.fetch(auctionPDA);
       console.log(`   Status: ${auctionAcc.status}, minBid: ${auctionAcc.minBid}, bidCount: ${auctionAcc.bidCount}`);
@@ -112,7 +112,7 @@ describe("VeilAuction", () => {
           executingPool: getExecutingPoolAccAddress(arciumEnv.arciumClusterOffset),
           compDefAccount: getCompDefAccAddress(program.programId, Buffer.from(getCompDefAccOffset("place_bid")).readUInt32LE()),
         })
-        .rpc({ skipPreflight: true, commitment: "confirmed" });
+        .rpc({ commitment: "confirmed" });
       await awaitComputationFinalization(provider as anchor.AnchorProvider, bidComputationOffset, program.programId, "confirmed");
       const auctionAfterBid = await program.account.auction.fetch(auctionPDA);
       console.log(`   bidCount: ${auctionAfterBid.bidCount}`);
@@ -144,7 +144,7 @@ describe("VeilAuction", () => {
         mempoolAccount: getMempoolAccAddress(arciumEnv.arciumClusterOffset),
         executingPool: getExecutingPoolAccAddress(arciumEnv.arciumClusterOffset),
         compDefAccount: getCompDefAccAddress(program.programId, Buffer.from(getCompDefAccOffset("determine_winner_first_price")).readUInt32LE()),
-      }).rpc({ skipPreflight: true, commitment: "confirmed" });
+      }).rpc({ commitment: "confirmed" });
       await awaitComputationFinalization(provider as anchor.AnchorProvider, resolveComputationOffset, program.programId, "confirmed");
       const resolvedAcc = await program.account.auction.fetch(auctionPDA);
       console.log(`   Status: ${resolvedAcc.status}`);
@@ -189,7 +189,7 @@ describe("VeilAuction", () => {
           mempoolAccount: getMempoolAccAddress(arciumEnv.arciumClusterOffset),
           executingPool: getExecutingPoolAccAddress(arciumEnv.arciumClusterOffset),
           compDefAccount: getCompDefAccAddress(program.programId, Buffer.from(getCompDefAccOffset("init_auction_state")).readUInt32LE()),
-        }).signers([vAuthority]).rpc({ skipPreflight: true, commitment: "confirmed" });
+        }).signers([vAuthority]).rpc({ commitment: "confirmed" });
       await awaitComputationFinalization(provider as anchor.AnchorProvider, createCO, program.programId, "confirmed");
       const vAuctionAcc = await program.account.auction.fetch(vAuctionPDA);
       console.log(`   Status: ${vAuctionAcc.status}, minBid: ${vAuctionAcc.minBid}`);
@@ -208,7 +208,7 @@ describe("VeilAuction", () => {
           mempoolAccount: getMempoolAccAddress(arciumEnv.arciumClusterOffset),
           executingPool: getExecutingPoolAccAddress(arciumEnv.arciumClusterOffset),
           compDefAccount: getCompDefAccAddress(program.programId, Buffer.from(getCompDefAccOffset("place_bid")).readUInt32LE()),
-        }).rpc({ skipPreflight: true, commitment: "confirmed" });
+        }).rpc({ commitment: "confirmed" });
       await awaitComputationFinalization(provider as anchor.AnchorProvider, b1CO, program.programId, "confirmed");
       let vAcc = await program.account.auction.fetch(vAuctionPDA);
       console.log(`   bidCount: ${vAcc.bidCount}`);
@@ -231,7 +231,7 @@ describe("VeilAuction", () => {
           mempoolAccount: getMempoolAccAddress(arciumEnv.arciumClusterOffset),
           executingPool: getExecutingPoolAccAddress(arciumEnv.arciumClusterOffset),
           compDefAccount: getCompDefAccAddress(program.programId, Buffer.from(getCompDefAccOffset("place_bid")).readUInt32LE()),
-        }).rpc({ skipPreflight: true, commitment: "confirmed" });
+        }).rpc({ commitment: "confirmed" });
       await awaitComputationFinalization(provider as anchor.AnchorProvider, b2CO, program.programId, "confirmed");
       vAcc = await program.account.auction.fetch(vAuctionPDA);
       console.log(`   bidCount: ${vAcc.bidCount}`);
@@ -262,7 +262,7 @@ describe("VeilAuction", () => {
         mempoolAccount: getMempoolAccAddress(arciumEnv.arciumClusterOffset),
         executingPool: getExecutingPoolAccAddress(arciumEnv.arciumClusterOffset),
         compDefAccount: getCompDefAccAddress(program.programId, Buffer.from(getCompDefAccOffset("determine_winner_vickrey")).readUInt32LE()),
-      }).signers([vAuthority]).rpc({ skipPreflight: true, commitment: "confirmed" });
+      }).signers([vAuthority]).rpc({ commitment: "confirmed" });
       await awaitComputationFinalization(provider as anchor.AnchorProvider, rCO, program.programId, "confirmed");
       vAcc = await program.account.auction.fetch(vAuctionPDA);
       console.log(`   Status: ${vAcc.status}`);
