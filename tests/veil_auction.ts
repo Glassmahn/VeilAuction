@@ -36,7 +36,12 @@ function splitPubkeyToU128s(pubkey: Uint8Array): { lo: bigint; hi: bigint } {
 }
 
 describe("VeilAuction", () => {
-  anchor.setProvider(anchor.AnchorProvider.env());
+  // Manually configure the provider with explicit RPC URL
+  const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
+  const walletKp = readKpJson(`${os.homedir()}/.config/solana/id.json`);
+  const wallet = new anchor.Wallet(walletKp);
+  const connection = new anchor.web3.Connection(rpcUrl, "confirmed");
+  anchor.setProvider(new anchor.AnchorProvider(connection, wallet, { commitment: "confirmed", skipPreflight: true }));
   const program = anchor.workspace.VeilAuction as Program<VeilAuction>;
   const provider = anchor.getProvider();
 
@@ -327,10 +332,13 @@ describe("VeilAuction", () => {
       console.log("\n=== Vickrey Auction Test ===\n");
 
       const vickreyAuthority = anchor.web3.Keypair.generate();
-      const fundSig = await provider.connection.requestAirdrop(
-        vickreyAuthority.publicKey,
-        2 * anchor.web3.LAMPORTS_PER_SOL
-      );
+      const fundIx = anchor.web3.SystemProgram.transfer({
+        fromPubkey: owner.publicKey,
+        toPubkey: vickreyAuthority.publicKey,
+        lamports: 0.1 * anchor.web3.LAMPORTS_PER_SOL,
+      });
+      const fundTx = new anchor.web3.Transaction().add(fundIx);
+      const fundSig = await provider.connection.sendTransaction(fundTx, [owner]);
       await provider.connection.confirmTransaction(fundSig);
 
       const bidder1 = owner;
