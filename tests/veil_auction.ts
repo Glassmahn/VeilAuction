@@ -62,6 +62,13 @@ describe("VeilAuction", () => {
   describe("First-Price Auction", () => {
     it("creates an auction, accepts bids, and determines winner", async () => {
       console.log("\n=== First-Price Auction Test ===\n");
+      const fpAuth = anchor.web3.Keypair.generate();
+      const fundTx = new anchor.web3.Transaction().add(anchor.web3.SystemProgram.transfer({
+        fromPubkey: owner.publicKey, toPubkey: fpAuth.publicKey, lamports: 0.1 * anchor.web3.LAMPORTS_PER_SOL,
+      }));
+      await connection.sendTransaction(fundTx, [owner]);
+      await connection.confirmTransaction(await connection.sendTransaction(fundTx, [owner]));
+
       const bidder = owner;
       const bidderPubkey = bidder.publicKey.toBytes();
       const { lo: bidderLo, hi: bidderHi } = splitPubkeyToU128s(bidderPubkey);
@@ -73,7 +80,7 @@ describe("VeilAuction", () => {
       const bidComputationOffset = new anchor.BN(randomBytes(8), "hex");
       const resolveComputationOffset = new anchor.BN(randomBytes(8), "hex");
       const [auctionPDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("auction"), owner.publicKey.toBuffer()],
+        [Buffer.from("auction"), fpAuth.publicKey.toBuffer()],
         program.programId
       );
 
@@ -82,13 +89,14 @@ describe("VeilAuction", () => {
       await program.methods
         .createAuction(createComputationOffset, { firstPrice: {} }, new anchor.BN(100), new anchor.BN(120))
         .accountsPartial({
-          authority: owner.publicKey, auction: auctionPDA,
+          authority: fpAuth.publicKey, auction: auctionPDA,
           computationAccount: getComputationAccAddress(arciumEnv.arciumClusterOffset, createComputationOffset),
           clusterAccount, mxeAccount: getMXEAccAddress(program.programId),
           mempoolAccount: getMempoolAccAddress(arciumEnv.arciumClusterOffset),
           executingPool: getExecutingPoolAccAddress(arciumEnv.arciumClusterOffset),
           compDefAccount: getCompDefAccAddress(program.programId, Buffer.from(getCompDefAccOffset("init_auction_state")).readUInt32LE()),
         })
+        .signers([fpAuth])
         .rpc({ commitment: "confirmed" });
       await awaitComputationFinalization(provider as anchor.AnchorProvider, createComputationOffset, program.programId, "confirmed");
       const auctionAcc = await program.account.auction.fetch(auctionPDA);
@@ -131,7 +139,7 @@ describe("VeilAuction", () => {
 
       // Step 4: Close auction
       console.log("Closing auction...");
-      await program.methods.closeAuction().accountsPartial({ authority: owner.publicKey, auction: auctionPDA }).rpc({ commitment: "confirmed" });
+      await program.methods.closeAuction().accountsPartial({ authority: fpAuth.publicKey, auction: auctionPDA }).signers([fpAuth]).rpc({ commitment: "confirmed" });
       const closedAcc = await program.account.auction.fetch(auctionPDA);
       const st2 = Object.keys(closedAcc.status as any)[0];
       console.log(`   Status: ${st2}`);
@@ -140,13 +148,13 @@ describe("VeilAuction", () => {
       // Step 5: Determine winner
       console.log("\nStep 4: Determining winner (first-price)...");
       await program.methods.determineWinnerFirstPrice(resolveComputationOffset).accountsPartial({
-        authority: owner.publicKey, auction: auctionPDA,
+        authority: fpAuth.publicKey, auction: auctionPDA,
         computationAccount: getComputationAccAddress(arciumEnv.arciumClusterOffset, resolveComputationOffset),
         clusterAccount, mxeAccount: getMXEAccAddress(program.programId),
         mempoolAccount: getMempoolAccAddress(arciumEnv.arciumClusterOffset),
         executingPool: getExecutingPoolAccAddress(arciumEnv.arciumClusterOffset),
         compDefAccount: getCompDefAccAddress(program.programId, Buffer.from(getCompDefAccOffset("determine_winner_first_price")).readUInt32LE()),
-      }).rpc({ commitment: "confirmed" });
+      }).signers([fpAuth]).rpc({ commitment: "confirmed" });
       await awaitComputationFinalization(provider as anchor.AnchorProvider, resolveComputationOffset, program.programId, "confirmed");
       const resolvedAcc = await program.account.auction.fetch(auctionPDA);
       const st3 = Object.keys(resolvedAcc.status as any)[0];
@@ -215,6 +223,11 @@ describe("VeilAuction", () => {
         }).rpc({ commitment: "confirmed" });
       await awaitComputationFinalization(provider as anchor.AnchorProvider, b1CO, program.programId, "confirmed");
       let vAcc = await program.account.auction.fetch(vAuctionPDA);
+      for (let i = 0; i < 30 && vAcc.bidCount < 1; i++) {
+        await new Promise(r => setTimeout(r, 2000));
+        vAcc = await program.account.auction.fetch(vAuctionPDA);
+        console.log(`   bidCount poll: ${vAcc.bidCount}`);
+      }
       console.log(`   bidCount: ${vAcc.bidCount}`);
       if (vAcc.bidCount !== 1) throw new Error("Expected 1 bid");
 
