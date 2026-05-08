@@ -37,9 +37,10 @@ describe("VeilAuction", () => {
   const walletKp = readKpJson(`${os.homedir()}/.config/solana/id.json`);
   const wallet = new anchor.Wallet(walletKp);
   const connection = new anchor.web3.Connection(RPC_URL, "confirmed");
-  anchor.setProvider(new anchor.AnchorProvider(connection, wallet, { commitment: "confirmed" }));
-  const program = anchor.workspace.VeilAuction as Program<VeilAuction>;
-  const provider = anchor.getProvider();
+  const provider = new anchor.AnchorProvider(connection, wallet, { commitment: "confirmed" });
+  anchor.setProvider(provider);
+  const idl = JSON.parse(fs.readFileSync("target/idl/veil_auction.json", "utf8"));
+  const program = new anchor.Program(idl as any, provider) as Program<VeilAuction>;
   const arciumEnv = getArciumEnv();
   const clusterAccount = getClusterAccAddress(arciumEnv.arciumClusterOffset);
 
