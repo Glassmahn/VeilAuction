@@ -25,7 +25,7 @@ import * as fs from "fs"
 import * as os from "os"
 import * as borsh from "borsh"
 
-const RPC = process.env.NEXT_PUBLIC_RPC_URL || "https://solana-devnet.api.onfinality.io/public"
+const RPC = process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com"
 const PROGRAM_ID = new PublicKey("zTkNvsczL8Uvg97KDFKo1PTnPSi8RdAKryyd7d3f2H4")
 
 type u8 = number; type u64 = bigint; type i64 = bigint

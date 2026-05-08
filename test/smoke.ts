@@ -3,7 +3,7 @@ import { Connection, PublicKey } from "@solana/web3.js"
 import { getArciumEnv, getMXEAccAddress } from "@arcium-hq/client"
 
 async function main() {
-  const rpc = process.env.NEXT_PUBLIC_RPC_URL || "https://solana-devnet.api.onfinality.io/public"
+  const rpc = process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com"
   const conn = new Connection(rpc, "confirmed")
 
   const programId = new PublicKey("zTkNvsczL8Uvg97KDFKo1PTnPSi8RdAKryyd7d3f2H4")

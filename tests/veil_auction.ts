@@ -37,11 +37,11 @@ function splitPubkeyToU128s(pubkey: Uint8Array): { lo: bigint; hi: bigint } {
 
 describe("VeilAuction", () => {
   // Manually configure the provider with explicit RPC URL
-  const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || "https://solana-devnet.api.onfinality.io/public";
-  const wsEndpoint = process.env.NEXT_PUBLIC_WS_URL || "wss://solana-devnet.api.onfinality.io/public-ws";
+  const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
   const walletKp = readKpJson(`${os.homedir()}/.config/solana/id.json`);
   const wallet = new anchor.Wallet(walletKp);
-  const connection = new anchor.web3.Connection(rpcUrl, { commitment: "confirmed", wsEndpoint });
+  const connection = new anchor.web3.Connection(RPC_URL, { commitment: "confirmed", confirmTransactionInitialTimeout: 120000 });
+  console.log("RPC:", RPC_URL);
   anchor.setProvider(new anchor.AnchorProvider(connection, wallet, { commitment: "confirmed", skipPreflight: true }));
   const program = anchor.workspace.VeilAuction as Program<VeilAuction>;
   const provider = anchor.getProvider();
@@ -705,19 +705,19 @@ describe("VeilAuction", () => {
 async function getMXEPublicKeyWithRetry(
   provider: anchor.AnchorProvider,
   programId: PublicKey,
-  maxRetries: number = 20,
-  retryDelayMs: number = 500
+  maxRetries: number = 30,
+  retryDelayMs: number = 2000
 ): Promise<Uint8Array> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const mxePublicKey = await getMXEPublicKey(provider, programId);
       if (mxePublicKey) return mxePublicKey;
-    } catch (error) {
-      console.log(`Attempt ${attempt} failed to fetch MXE public key:`, error);
+    } catch (error: any) {
+      const is429 = error?.message?.includes("429") || error?.toString?.().includes("429");
+      const delay = is429 ? retryDelayMs * Math.min(attempt, 5) : retryDelayMs;
+      console.log(`   Attempt ${attempt}/${maxRetries} failed${is429 ? " (429)" : ""}, retrying in ${delay}ms`);
     }
-    if (attempt < maxRetries) {
-      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
-    }
+    await new Promise((resolve) => setTimeout(resolve, retryDelayMs * Math.min(attempt, 5)));
   }
   throw new Error(
     `Failed to fetch MXE public key after ${maxRetries} attempts`

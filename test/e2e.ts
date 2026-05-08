@@ -60,7 +60,7 @@ function print(...args: any[]) {
 }
 
 async function main() {
-  const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || "https://solana-devnet.api.onfinality.io/public";
+  const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
   const walletKp = readKpJson(`${os.homedir()}/.config/solana/id.json`);
   const wallet = new anchor.Wallet(walletKp);
   const connection = new Connection(rpcUrl, "confirmed");
