@@ -38,9 +38,10 @@ function splitPubkeyToU128s(pubkey: Uint8Array): { lo: bigint; hi: bigint } {
 describe("VeilAuction", () => {
   // Manually configure the provider with explicit RPC URL
   const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || "https://solana-devnet.api.onfinality.io/public";
+  const wsEndpoint = process.env.NEXT_PUBLIC_WS_URL || "wss://solana-devnet.api.onfinality.io/public-ws";
   const walletKp = readKpJson(`${os.homedir()}/.config/solana/id.json`);
   const wallet = new anchor.Wallet(walletKp);
-  const connection = new anchor.web3.Connection(rpcUrl, "confirmed");
+  const connection = new anchor.web3.Connection(rpcUrl, { commitment: "confirmed", wsEndpoint });
   anchor.setProvider(new anchor.AnchorProvider(connection, wallet, { commitment: "confirmed", skipPreflight: true }));
   const program = anchor.workspace.VeilAuction as Program<VeilAuction>;
   const provider = anchor.getProvider();
