@@ -6,7 +6,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  serverExternalPackages: ["@arcium-hq/client"],
+  experimental: {
+    esmExternals: "loose",
+  },
   turbopack: {},
 }
 
