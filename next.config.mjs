@@ -6,10 +6,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  experimental: {
-    esmExternals: "loose",
-  },
-  turbopack: {},
 }
 
 export default nextConfig
