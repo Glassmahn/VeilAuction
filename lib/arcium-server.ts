@@ -1,8 +1,18 @@
-import { Connection, PublicKey, Transaction, SystemProgram, Keypair } from "@solana/web3.js"
+import { Connection, PublicKey, Transaction, SystemProgram, Keypair, TransactionInstruction } from "@solana/web3.js"
 import { BN, Program, AnchorProvider } from "@coral-xyz/anchor"
 import crypto from "crypto"
 
-const VEIL_PROGRAM_ID = process.env.NEXT_PUBLIC_VEIL_AUCTION_PROGRAM_ID || "DKhS1u3qVR5WytmuVT1mc6cZnj5QiybXnRWBr7x2yaae"
+const VEIL_PROGRAM_ID = process.env.NEXT_PUBLIC_VEIL_AUCTION_PROGRAM_ID || "zTkNvsczL8Uvg97KDFKo1PTnPSi8RdAKryyd7d3f2H4"
+
+function makeProvider(connection: Connection): AnchorProvider {
+  const dummyKp = Keypair.generate()
+  const dummyWallet = {
+    publicKey: dummyKp.publicKey,
+    signTransaction: async (tx: Transaction) => { tx.sign(dummyKp); return tx },
+    signAllTransactions: async (txs: Transaction[]) => { txs.forEach(tx => tx.sign(dummyKp)); return txs },
+  }
+  return new AnchorProvider(connection, dummyWallet as any, { commitment: "confirmed" })
+}
 
 const IDL = {
   version: "0.1.0",
@@ -11,6 +21,7 @@ const IDL = {
   instructions: [
     {
       name: "createAuction",
+      discriminator: [234, 6, 201, 246, 47, 219, 176, 107],
       accounts: [
         { name: "authority", isMut: true, isSigner: true },
         { name: "auction", isMut: true, isSigner: false },
@@ -28,13 +39,14 @@ const IDL = {
       ],
       args: [
         { name: "computationOffset", type: "u64" },
-        { name: "auctionType", type: { defined: "AuctionType" } },
+        { name: "auctionType", type: { defined: { name: "AuctionType" } } },
         { name: "minBid", type: "u64" },
         { name: "duration", type: "i64" },
       ],
     },
     {
       name: "placeBid",
+      discriminator: [238, 77, 148, 91, 200, 151, 92, 146],
       accounts: [
         { name: "bidder", isMut: true, isSigner: true },
         { name: "auction", isMut: true, isSigner: false },
@@ -59,12 +71,13 @@ const IDL = {
         { name: "nonce", type: "u128" },
       ],
     },
-    { name: "closeAuction", accounts: [
+    { name: "closeAuction", discriminator: [225, 129, 91, 48, 215, 73, 203, 172], accounts: [
       { name: "authority", isMut: true, isSigner: true },
       { name: "auction", isMut: true, isSigner: false },
     ], args: [] },
     {
       name: "determineWinnerFirstPrice",
+      discriminator: [41, 137, 132, 233, 250, 216, 40, 48],
       accounts: [
         { name: "authority", isMut: true, isSigner: true },
         { name: "auction", isMut: true, isSigner: false },
@@ -84,6 +97,7 @@ const IDL = {
     },
     {
       name: "determineWinnerVickrey",
+      discriminator: [107, 38, 185, 71, 251, 130, 217, 19],
       accounts: [
         { name: "authority", isMut: true, isSigner: true },
         { name: "auction", isMut: true, isSigner: false },
@@ -102,23 +116,6 @@ const IDL = {
       args: [{ name: "computationOffset", type: "u64" }],
     },
   ],
-  accounts: [{
-    name: "Auction",
-    type: {
-      kind: "struct",
-      fields: [
-        { name: "bump", type: "u8" },
-        { name: "authority", type: "publicKey" },
-        { name: "auctionType", type: { defined: "AuctionType" } },
-        { name: "status", type: { defined: "AuctionStatus" } },
-        { name: "minBid", type: "u64" },
-        { name: "endTime", type: "i64" },
-        { name: "bidCount", type: "u16" },
-        { name: "stateNonce", type: "u128" },
-        { name: "encryptedState", type: { array: [{ array: ["u8", 32] }, 5] } },
-      ],
-    },
-  }],
   types: [
     { name: "AuctionType", type: { kind: "enum", variants: [{ name: "FirstPrice" }, { name: "Vickrey" }] } },
     { name: "AuctionStatus", type: { kind: "enum", variants: [{ name: "Open" }, { name: "Closed" }, { name: "Resolved" }] } },
@@ -183,16 +180,12 @@ async function deriveArciumAccounts(
   const compDefOffset = Buffer.from(client.getCompDefAccOffset(compDefName)).readUInt32LE()
   const compDefAccount = client.getCompDefAccAddress(programId, compDefOffset)
 
-  const SIGN_PDA_SEED = Buffer.from("arcium_signer")
+  const SIGN_PDA_SEED = Buffer.from("ArciumSignerAccount")
+  const [signPdaAccount] = PublicKey.findProgramAddressSync([SIGN_PDA_SEED], programId)
   const arciumProgramId = new PublicKey(client.getArciumProgramId())
-  const [signPdaAccount] = PublicKey.findProgramAddressSync([SIGN_PDA_SEED], arciumProgramId)
 
-  const [poolAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from("fee_pool")],
-    arciumProgramId
-  )
-
-  const clockAccount = new PublicKey("ArciumC1ockAccount1111111111111111111111111")
+  const poolAccount = client.getFeePoolAccAddress()
+  const clockAccount = client.getClockAccAddress()
 
   return {
     signPdaAccount,
@@ -207,6 +200,29 @@ async function deriveArciumAccounts(
     systemProgram: SystemProgram.programId,
     arciumProgram: arciumProgramId,
   }
+}
+
+function buildIx(
+  program: Program,
+  ixName: string,
+  args: Record<string, any>,
+  accounts: Record<string, PublicKey>
+): TransactionInstruction {
+  const ixDef = (IDL.instructions as any[]).find((ix: any) => ix.name === ixName)
+  if (!ixDef) throw new Error(`Instruction ${ixName} not found in IDL`)
+
+  const data = (program as any).coder.instruction.encode(ixName, args)
+  const keys = ixDef.accounts.map((acc: any) => ({
+    pubkey: accounts[acc.name],
+    isSigner: acc.isSigner,
+    isWritable: acc.isMut,
+  }))
+
+  return new TransactionInstruction({
+    programId: program.programId,
+    keys,
+    data,
+  })
 }
 
 export async function buildCreateAuctionTx(
@@ -238,16 +254,19 @@ export async function buildCreateAuctionTx(
     ? { firstPrice: {} }
     : { vickrey: {} }
 
-  const veilProgram = new Program(IDL as any, undefined as any) as Program
+  const provider = makeProvider(connection)
+  const veilProgram = new Program(IDL as any, provider) as Program
 
-  const ix = await veilProgram.methods
-    .createAuction(computationOffset, auctionTypeVariant, new BN(minBid), duration)
-    .accountsPartial({
-      authority: authorityPubkey,
-      auction: auctionPda,
-      ...arciumAccounts,
-    })
-    .instruction()
+  const ix = buildIx(veilProgram, "createAuction", {
+    computationOffset,
+    auctionType: auctionTypeVariant,
+    minBid: new BN(minBid),
+    duration,
+  }, {
+    authority: authorityPubkey,
+    auction: auctionPda,
+    ...arciumAccounts,
+  })
 
   const blockhash = await connection.getLatestBlockhash()
   const tx = new Transaction({
@@ -318,23 +337,21 @@ export async function buildPlaceBidTx(
   const computationOffset = new BN(crypto.randomBytes(8))
   const arciumAccounts = await deriveArciumAccounts(programId, computationOffset, "place_bid")
 
-  const veilProgram = new Program(IDL as any, undefined as any) as Program
+  const provider = makeProvider(connection)
+  const veilProgram = new Program(IDL as any, provider) as Program
 
-  const ix = await veilProgram.methods
-    .placeBid(
-      computationOffset,
-      encryptedBidderLo,
-      encryptedBidderHi,
-      encryptedAmount,
-      bidderPubkeyBytes,
-      nonceU128
-    )
-    .accountsPartial({
-      bidder: bidderPubkey,
-      auction: auctionPubkey,
-      ...arciumAccounts,
-    })
-    .instruction()
+  const ix = buildIx(veilProgram, "placeBid", {
+    computationOffset,
+    encryptedBidderLo,
+    encryptedBidderHi,
+    encryptedAmount,
+    bidderPubkeyBytes,
+    nonce: nonceU128,
+  }, {
+    bidder: bidderPubkey,
+    auction: auctionPubkey,
+    ...arciumAccounts,
+  })
 
   const blockhash = await connection.getLatestBlockhash()
   const tx = new Transaction({
@@ -363,15 +380,13 @@ export async function buildCloseAuctionTx(
   const authorityPubkey = new PublicKey(authority)
   const auctionPubkey = new PublicKey(auctionPda)
 
-  const veilProgram = new Program(IDL as any, undefined as any) as Program
+  const provider = makeProvider(connection)
+  const veilProgram = new Program(IDL as any, provider) as Program
 
-  const ix = await veilProgram.methods
-    .closeAuction()
-    .accountsPartial({
-      authority: authorityPubkey,
-      auction: auctionPubkey,
-    })
-    .instruction()
+  const ix = buildIx(veilProgram, "closeAuction", {}, {
+    authority: authorityPubkey,
+    auction: auctionPubkey,
+  })
 
   const blockhash = await connection.getLatestBlockhash()
   const tx = new Transaction({
@@ -406,18 +421,17 @@ export async function buildDetermineWinnerTx(
     compDefName
   )
 
-  const veilProgram = new Program(IDL as any, undefined as any) as Program
+  const provider = makeProvider(connection)
+  const veilProgram = new Program(IDL as any, provider) as Program
   const methodName = auctionType === "first-price"
     ? "determineWinnerFirstPrice"
     : "determineWinnerVickrey"
 
-  const ix = await veilProgram.methods[methodName](computationOffset)
-    .accountsPartial({
-      authority: authorityPubkey,
-      auction: auctionPubkey,
-      ...arciumAccounts,
-    })
-    .instruction()
+  const ix = buildIx(veilProgram, methodName, { computationOffset }, {
+    authority: authorityPubkey,
+    auction: auctionPubkey,
+    ...arciumAccounts,
+  })
 
   const blockhash = await connection.getLatestBlockhash()
   const tx = new Transaction({

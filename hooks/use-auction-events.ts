@@ -50,114 +50,39 @@ export function useAuctionEvents(userAddress?: string) {
           const logs = parsedTx.meta?.logMessages || []
 
           let eventType: "create" | "bid" | "close" | "resolve" | null = null
-          let details = ""
           let auctionPda = ""
-          let authority = ""
-          let bidCount = 0
 
           for (const log of logs) {
-            if (log.includes("AuctionCreatedEvent")) {
+            if (log.includes("Instruction: CreateAuction")) {
               eventType = "create"
-              details = "Auction created on chain"
-              const idx = log.indexOf("Program data:")
-              if (idx >= 0) {
-                try {
-                  const raw = atob(log.slice(idx + 14))
-                  if (raw.includes("{")) {
-                    const jsonStart = raw.indexOf("{")
-                    const jsonEnd = raw.lastIndexOf("}") + 1
-                    if (jsonStart >= 0 && jsonEnd > jsonStart) {
-                      const data = JSON.parse(raw.slice(jsonStart, jsonEnd))
-                      auctionPda = data.auction || ""
-                      authority = data.authority || ""
-                      details = `${data.minBid || "?"} min bid, ${data.auctionType || ""} auction`
-                    }
-                  }
-                } catch {
-                  details = "Auction created on chain"
-                }
-              }
               break
             }
-            if (log.includes("BidPlacedEvent")) {
+            if (log.includes("Instruction: PlaceBid")) {
               eventType = "bid"
-              details = "Encrypted bid submitted"
-              const idx = log.indexOf("Program data:")
-              if (idx >= 0) {
-                try {
-                  const raw = atob(log.slice(idx + 14))
-                  if (raw.includes("{")) {
-                    const jsonStart = raw.indexOf("{")
-                    const jsonEnd = raw.lastIndexOf("}") + 1
-                    if (jsonStart >= 0 && jsonEnd > jsonStart) {
-                      const data = JSON.parse(raw.slice(jsonStart, jsonEnd))
-                      auctionPda = data.auction || ""
-                      bidCount = Number(data.bidCount) || 0
-                      details = `${bidCount} bids total`
-                    }
-                  }
-                } catch {
-                  details = "Encrypted bid submitted"
-                }
-              }
               break
             }
-            if (log.includes("AuctionClosedEvent")) {
+            if (log.includes("Instruction: CloseAuction")) {
               eventType = "close"
-              details = "Auction closed for bidding"
-              const idx = log.indexOf("Program data:")
-              if (idx >= 0) {
-                try {
-                  const raw = atob(log.slice(idx + 14))
-                  if (raw.includes("{")) {
-                    const jsonStart = raw.indexOf("{")
-                    const jsonEnd = raw.lastIndexOf("}") + 1
-                    if (jsonStart >= 0 && jsonEnd > jsonStart) {
-                      const data = JSON.parse(raw.slice(jsonStart, jsonEnd))
-                      auctionPda = data.auction || ""
-                      bidCount = Number(data.bidCount) || 0
-                      details = `${bidCount} bids received`
-                    }
-                  }
-                } catch {
-                  details = "Auction closed for bidding"
-                }
-              }
               break
             }
-            if (log.includes("AuctionResolvedEvent")) {
+            if (log.includes("Instruction: DetermineWinnerFirstPrice") || log.includes("Instruction: DetermineWinnerVickrey")) {
               eventType = "resolve"
-              details = "Auction resolved, winner determined"
-              const idx = log.indexOf("Program data:")
-              if (idx >= 0) {
-                try {
-                  const raw = atob(log.slice(idx + 14))
-                  if (raw.includes("{")) {
-                    const jsonStart = raw.indexOf("{")
-                    const jsonEnd = raw.lastIndexOf("}") + 1
-                    if (jsonStart >= 0 && jsonEnd > jsonStart) {
-                      const data = JSON.parse(raw.slice(jsonStart, jsonEnd))
-                      auctionPda = data.auction || ""
-                      details = `Winner paid ${data.paymentAmount || "?"} lamports`
-                    }
-                  }
-                } catch {
-                  details = "Auction resolved, winner determined"
-                }
-              }
               break
             }
           }
 
           if (eventType && sig.blockTime !== null) {
+            const details = eventType === "create" ? "Auction created on chain"
+              : eventType === "bid" ? "Encrypted bid submitted"
+              : eventType === "close" ? "Auction closed for bidding"
+              : "Auction resolved, winner determined"
+
             allEvents.push({
               type: eventType,
               auctionPda,
               signature: sig.signature,
               blockTime: sig.blockTime as number,
               details,
-              authority,
-              bidCount,
             })
           }
         } catch {

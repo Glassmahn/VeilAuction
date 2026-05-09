@@ -170,8 +170,6 @@ export default function AuctionDetailPage() {
     }
   }, [connected, publicKey, auction, auctionId, signTransaction, connection, refetch])
 
-  }, [connected, publicKey, auction, auctionId, signTransaction, connection, refetch])
-
   const handleClaimWinnings = useCallback(async () => {
     if (!connected || !publicKey || !auction) return
     setIsClaiming(true)

@@ -6,7 +6,7 @@ import { PublicKey } from "@solana/web3.js"
 import { AnchorProvider, Program, web3 } from "@coral-xyz/anchor"
 import type { Wallet as AnchorWallet } from "@coral-xyz/anchor"
 
-const VEIL_PROGRAM_ID = process.env.NEXT_PUBLIC_VEIL_AUCTION_PROGRAM_ID || "DKhS1u3qVR5WytmuVT1mc6cZnj5QiybXnRWBr7x2yaae"
+const VEIL_PROGRAM_ID = process.env.NEXT_PUBLIC_VEIL_AUCTION_PROGRAM_ID || "zTkNvsczL8Uvg97KDFKo1PTnPSi8RdAKryyd7d3f2H4"
 
 const IDL = {
   version: "0.1.0",

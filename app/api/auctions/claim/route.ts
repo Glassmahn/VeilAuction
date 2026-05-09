@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { PublicKey, Transaction, SystemProgram } from "@solana/web3.js"
-import { BN, Program } from "@coral-xyz/anchor"
-import { Connection } from "@solana/web3.js"
+import { PublicKey, Transaction, SystemProgram, Keypair, TransactionInstruction, Connection } from "@solana/web3.js"
+import { Program, AnchorProvider } from "@coral-xyz/anchor"
 import { classifyArciumError } from "@/lib/arcium-errors"
 
-const VEIL_PROGRAM_ID = process.env.NEXT_PUBLIC_VEIL_AUCTION_PROGRAM_ID || "DKhS1u3qVR5WytmuVT1mc6cZnj5QiybXnRWBr7x2yaae"
+const VEIL_PROGRAM_ID = process.env.NEXT_PUBLIC_VEIL_AUCTION_PROGRAM_ID || "zTkNvsczL8Uvg97KDFKo1PTnPSi8RdAKryyd7d3f2H4"
 
 const IDL = {
   version: "0.1.0",
@@ -13,6 +12,7 @@ const IDL = {
   instructions: [
     {
       name: "claimWinnings",
+      discriminator: [161, 215, 24, 59, 14, 236, 242, 221],
       accounts: [
         { name: "authority", isMut: true, isSigner: true },
         { name: "auction", isMut: true, isSigner: false },
@@ -45,17 +45,22 @@ export async function POST(req: NextRequest) {
       programId
     )
 
-    const veilProgram = new Program(IDL as any, undefined as any) as Program
+    const dummyKp = Keypair.generate()
+    const dummyWallet = { publicKey: dummyKp.publicKey, signTransaction: async (tx: Transaction) => { tx.sign(dummyKp); return tx }, signAllTransactions: async (txs: Transaction[]) => { txs.forEach(tx => tx.sign(dummyKp)); return txs } }
+    const provider = new AnchorProvider(connection, dummyWallet as any, { commitment: "confirmed" })
+    const veilProgram = new Program(IDL as any, provider) as Program
 
-    const ix = await veilProgram.methods
-      .claimWinnings()
-      .accountsPartial({
-        authority: authorityPubkey,
-        auction: auctionPubkey,
-        winnerEscrow: winnerEscrowPda,
-        systemProgram: SystemProgram.programId,
-      })
-      .instruction()
+    const ixData = (veilProgram as any).coder.instruction.encode("claimWinnings", {})
+    const ix = new TransactionInstruction({
+      programId: veilProgram.programId,
+      keys: [
+        { pubkey: authorityPubkey, isSigner: true, isWritable: true },
+        { pubkey: auctionPubkey, isSigner: false, isWritable: true },
+        { pubkey: winnerEscrowPda, isSigner: false, isWritable: true },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      data: ixData,
+    })
 
     const blockhash = await connection.getLatestBlockhash()
     const tx = new Transaction({

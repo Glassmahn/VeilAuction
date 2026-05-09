@@ -65,6 +65,9 @@ export default function CreateAuctionPage() {
         throw new Error("Wallet does not support transaction signing")
       }
 
+      const { blockhash } = await connection.getLatestBlockhash()
+      tx.recentBlockhash = blockhash
+
       const signedTx = await signTransaction(tx)
 
       toast.info("Sending transaction to network...")
